@@ -190,7 +190,37 @@ def Terminal_rooms(graph, n):
         
 
     return t_rooms  ,Full  
+def More_terminal_rooms(graph, n):
+        adjacent =  [[-1,0],[1,0],[0,-1],[0,1]] 
+        t_rooms =  [node for node in graph.nodes if graph.degree(node) == 1] 
+        n_t = len(t_rooms)
+        t_rooms = rd.shuffle(t_rooms)
+        for room in t_rooms:
+            if n_t == n:
+                break
+            valid_adjacent = [(room[0] + adj[0], room[1] + adj[1]) for adj in adjacent if 0<= room[0] + adj[0] <=12 and 0<= room[1] + adj[1] <=12 and (room[0] + adj[0], room[1] + adj[1]) not in graph.nodes]
+            
+            for adj in valid_adjacent:
+                Valid_adj = False
+                graph.add_node(adj)
+                graph.add_edge(room,adj)
+                t_rooms.remove(room)
+                valid_adjacent_new = [(adj_[0] + adj[0], adj_[1] + adj[1]) for adj_ in adjacent if 0<= adj[0] + adj_[0] <=12 and 0<= adj[1] + adj_[1] <=12 and (adj[0] + adj_[0], adj[1] + adj_[1]) not in graph.nodes]
+                for new_terminal in valid_adjacent_new:
+                    if [(new_terminal[0] + adj_[0], new_terminal[1] + adj_[1]) for adj_ in adjacent if (new_terminal[0] + adj_[0], new_terminal[1] + adj_[1]) in graph.nodes] == [adj]:
+                        graph.add_node(new_terminal)
+                        graph.add_edge(adj,new_terminal)
+                      
+                        n_t += 1
+                        Valid_adj = True
+                        if n_t == n:
+                            break
 
+                if not Valid_adj:
+                    n_t 
+                    graph.remove_node(adj)
+
+                
 def Plot_map(graph):
     # Diccionario {nodo: (x,y)} usando las mismas coordenadas de los nodos
     pos = {node: (node[0], node[1]) for node in graph.nodes}
@@ -207,8 +237,35 @@ def Plot_map(graph):
     )
     plt.gca().set_aspect('equal', adjustable='box')  # mantener cuadrícula
     plt.show()
-graph= generate_map_Graph(1234579)
+
+def map_islands(graph: nx.Graph): #unpolished
+    rooms = list(graph.nodes)
+    rooms.sort()
+    islands = []
+    visited = set()
+    adjacent = [[(1,0), (0,1), (1,1)],[(-1,0), (0,-1), (-1,-1)],[(-1,0), (0,1), (-1,1)],[(1,0), (0,-1), (1,-1)]]
+    for room in rooms:
+        if room in visited:
+            continue
+        for adj in adjacent:
+            existing_island = False
+            adj_= ((room[0] + adj[0][0], room[1] + adj[0][1]), (room[0] + adj[1][0], room[1] + adj[1][1]), (room[0] + adj[2][0], room[1] + adj[2][1]))
+            if all(a in graph.nodes for a in adj_):
+                for island in islands:    
+                    if adj_[0] in island or adj_[1] in island or adj_[2] in island:
+                        island.update({room, adj_[0], adj_[1], adj_[2]})
+                        existing_island = True
+                    
+                if not existing_island:    
+                    islands.append({room, adj_[0], adj_[1], adj_[2]})
+                
+                for i in adj_:
+                    visited.add(i)
+    return islands           
+            
+graph= generate_map_Graph(123489)
 Plot_map(graph)
 a,b =Terminal_rooms(graph,6)
-print(a,b)
+
+print(map_islands(graph))
 Plot_map(graph)
